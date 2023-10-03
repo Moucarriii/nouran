@@ -8,7 +8,7 @@ import seaborn as sns
 import plotly.express as px
 # %matplotlib inline
 
-df = pd.read_csv('C:\\Users\\ADMIN\\Desktop\\nouran\\Egyptian Doctors Data.csv')
+df = pd.read_csv('test.csv')
 
 df
 
