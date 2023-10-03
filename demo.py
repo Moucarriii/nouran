@@ -1,22 +1,29 @@
-# -*- coding: utf-8 -*-
-# Commented out IPython magic to ensure Python compatibility.
-import pandas as pd
-import numpy as np
-import cufflinks as cf
-import chart_studio.plotly as py
-import seaborn as sns
-import plotly.express as px
-# %matplotlib inline
 
-df = pd.read_csv('test.csv')
 
-df
 
-"""# New Section"""
-
+import streamlit as st
 import pandas as pd
 import re
 import plotly.express as px
+
+# Load your data
+def load_data():
+    df = pd.read_csv('test.csv')
+    return df
+
+df = load_data()
+if 'rate_count' in df.columns:
+    # Create the 'number_of_visitors' column by converting 'rate_count' to string
+    df['number_of_visitors'] = df['rate_count'].astype(str)
+else:
+    st.error("The 'rate_count' column does not exist in the DataFrame.")
+
+# Page Title
+st.title("Egyptian Doctors Data Analysis")
+
+# Display the raw data
+st.subheader("Raw Data")
+st.write(df)
 
 # Define a function to extract numbers from a string
 def extract_numbers(text):
@@ -32,10 +39,6 @@ df['waiting_time'] = df['waiting_time'].apply(extract_numbers)
 # Apply the extract_numbers function to the 'fees' column
 df['fees'] = df['fees'].apply(extract_numbers)
 
-df['fees']
-
-df['waiting_time']
-
 # Group the data by 'specialization' and calculate the total count of each specialization
 specialization_counts = df['specialization'].value_counts().reset_index()
 specialization_counts.columns = ['specialization', 'Total Count']
@@ -44,90 +47,71 @@ specialization_counts.columns = ['specialization', 'Total Count']
 sorted_specializations = specialization_counts.sort_values(by='Total Count', ascending=False)
 
 # Display the sorted specializations
-print(sorted_specializations)
+st.subheader("Total Count of Doctors by Specialization")
+st.write(sorted_specializations)
 
 # Create a bar chart to visualize the total count of each specialization
 fig = px.bar(sorted_specializations, x='specialization', y='Total Count',
-             title='Total Count of Doctors by specialization')
+             title='Total Count of Doctors by Specialization')
 
 # Customize the chart (optional)
-fig.update_xaxes(title_text='specialization')
+fig.update_xaxes(title_text='Specialization')
 fig.update_yaxes(title_text='Total Count')
 
 # Rotate x-axis labels for better readability (optional)
 fig.update_layout(xaxis_tickangle=-45)
 
 # Display the plot
-fig.show()
+st.plotly_chart(fig)
 
-"""In this bar plot we can notice that Dentist clinics are having massive number on the booking application with 177 following them Gynecologist and Cardiologist with 134 and 90 respectively. While Laboratory and family doctor are almost 1. Which means that the application should drag more of them on the application to fulfill all the requests by the patients.  """
+#####
 
-fig = px.scatter(df, x='specialization', y='fees', title='specialization vs. Appointment Fees')
-fig.show()
 
-"""In this scatter plot we can see the ranging fees for each specialization as the fees varies even in the same specialization."""
+# Create a scatter plot for specialization vs. fees
+fig2 = px.scatter(df, x='specialization', y='fees', title='Specialization vs. Appointment Fees')
+st.plotly_chart(fig2)
 
 # Group the data by 'specialization' and calculate the average fees for each specialization
 specialization_fees = df.groupby('specialization')['fees'].mean().reset_index()
 
 # Sort the specializations by average fees in descending order
-sorted_specializations = specialization_fees.sort_values(by='fees', ascending=False)
+sorted_specializations_fees = specialization_fees.sort_values(by='fees', ascending=False)
 
 # Select the top 10 specializations with the highest fees (highest to lowest)
-top_10_specializations = sorted_specializations.head(10)
+top_10_specializations_fees = sorted_specializations_fees.head(10)
 
 # Create a scatter plot to visualize the relationship between specialization and fees
-fig = px.scatter(top_10_specializations, x='specialization', y='fees',
-                 title='Top 10 Specializations with Highest Fees (Highest to Lowest)')
+fig3 = px.scatter(top_10_specializations_fees, x='specialization', y='fees',
+                  title='Top 10 Specializations with Highest Fees (Highest to Lowest)')
 
 # Customize the chart (optional)
-fig.update_xaxes(title_text='Specialization')
-fig.update_yaxes(title_text='Average Fees')
+fig3.update_xaxes(title_text='Specialization')
+fig3.update_yaxes(title_text='Average Fees')
 
 # Rotate x-axis labels for better readability (optional)
-fig.update_layout(xaxis_tickangle=-45)
+fig3.update_layout(xaxis_tickangle=-45)
 
 # Display the plot
-fig.show()
+st.plotly_chart(fig3)
 
-"""In this Scatter plot we can see the top 10 specialization with the highest fees"""
-
-# Group the data by 'location' and count the number of doctors in each governorate
+# Group the data by 'clinic_location' and count the number of doctors in each governorate
 governorate_counts = df['clinic_location'].value_counts().reset_index()
 governorate_counts.columns = ['Governorate', 'Doctor Count']
 
 # Display the result
-print(governorate_counts)
-
-governorate_counts = df['clinic_location'].value_counts().reset_index()
-governorate_counts.columns = ['Governorate', 'Doctor Count']
+st.subheader("Governorates with Most Doctors")
+st.write(governorate_counts)
 
 # Sort the governorates by doctor count in descending order and select the top 5
 top_5_governorates = governorate_counts.head(5)
 
 # Create a pie chart for the top 5 governorates
-fig = px.pie(top_5_governorates, names='Governorate', values='Doctor Count', title='Top 5 Governorates with Most Doctors')
+fig4 = px.pie(top_5_governorates, names='Governorate', values='Doctor Count', title='Top 5 Governorates with Most Doctors')
 
 # Display the plot
-fig.show()
+st.plotly_chart(fig4)
 
-# Group the data by 'clinic_location' and calculate the total number of patients for each governorate
-governorate_patients = df.groupby('clinic_location')['number_of_visitors'].sum().reset_index()
 
-# Sort the governorates by total number of patients in descending order
-sorted_governorates = governorate_patients.sort_values(by='number_of_visitors', ascending=False)
-
-# Select the top 5 governorates with the most number of patients
-top_5_governorates = sorted_governorates.head(5)
-
-# Create a pie chart for the top 5 governorates with the most number of patients
-fig = px.pie(top_5_governorates, names='clinic_location', values='number_of_visitors',
-             title='Top 5 Governorates with Most Patients')
-
-# Display the plot
-fig.show()
-
-"""In this pie chart we can see the percentage of clinics in each area"""
 
 import re
 # Define a function to extract numbers from a string
@@ -151,48 +135,47 @@ top_10_doctors = doctor_visitors.nlargest(10, 'number_of_visitors')
 # Display the result
 print(top_10_doctors)
 
+
+
+
 # Group the data by 'specialization' and calculate the total number of visitors for each specialization
 specialization_visitors = df.groupby('specialization')['number_of_visitors'].sum().reset_index()
 
 # Sort the specializations by total number of visitors in descending order
-sorted_specializations = specialization_visitors.sort_values(by='number_of_visitors', ascending=False)
+sorted_specializations_visitors = specialization_visitors.sort_values(by='number_of_visitors', ascending=False)
 
 # Select the top 10 specializations with the highest number of visitors
-top_10_specializations = sorted_specializations.head(10)
+top_10_specializations_visitors = sorted_specializations_visitors.head(10)
 
 # Create a bar chart to visualize the number of visitors for the top 10 specializations
-fig = px.bar(top_10_specializations, x='specialization', y='number_of_visitors',
-             title='Top 10 Specializations with Highest Number of Visitors')
+fig6 = px.bar(top_10_specializations_visitors, x='specialization', y='number_of_visitors',
+               title='Top 10 Specializations with Highest Number of Visitors')
 
 # Customize the chart (optional)
-fig.update_xaxes(title_text='Specialization')
-fig.update_yaxes(title_text='Number of Visitors')
+fig6.update_xaxes(title_text='Specialization')
+fig6.update_yaxes(title_text='Number of Visitors')
 
 # Rotate x-axis labels for better readability (optional)
-fig.update_layout(xaxis_tickangle=-45)
+fig6.update_layout(xaxis_tickangle=-45)
 
 # Display the plot
-fig.show()
-
-"""Here we can see the top 10 specialization in which they have the hight number of patients"""
+st.plotly_chart(fig6)
 
 # Group the data by 'specialization' and calculate the total number of visitors for each specialization
 specialization_visitors = df.groupby('specialization')['number_of_visitors'].sum().reset_index()
 
 # Sort the specializations by total number of visitors in descending order
-sorted_specializations = specialization_visitors.sort_values(by='number_of_visitors', ascending=False)
+sorted_specializations_visitors = specialization_visitors.sort_values(by='number_of_visitors', ascending=False)
 
 # Select the top 10 specializations with the highest number of visitors
-top_10_specializations = sorted_specializations.head(10)
+top_10_specializations_visitors = sorted_specializations_visitors.head(10)
 
 # Create a treemap for the top 10 specializations with the highest number of visitors
-fig = px.treemap(top_10_specializations, path=['specialization'], values='number_of_visitors',
-                 title='Top 10 Specializations with Highest Number of Visitors (Treemap)')
+fig7 = px.treemap(top_10_specializations_visitors, path=['specialization'], values='number_of_visitors',
+                  title='Top 10 Specializations with Highest Number of Visitors (Treemap)')
 
 # Display the plot
-fig.show()
-
-"""Here we can see the top 10 specialization in which they have the hight number of patients in a Treemap"""
+st.plotly_chart(fig7)
 
 # Define waiting time categories
 def categorize_waiting_time(waiting_time):
@@ -210,10 +193,8 @@ df['waiting_time_category'] = df['waiting_time'].apply(categorize_waiting_time)
 specialization_waiting_time_counts = df.groupby(['specialization', 'waiting_time_category']).size().reset_index(name='count')
 
 # Create a treemap for specialization vs. waiting time categories
-fig = px.treemap(specialization_waiting_time_counts, path=['specialization', 'waiting_time_category'], values='count',
-                 title='Specialization vs. Waiting Time Categories (Treemap)')
+fig8 = px.treemap(specialization_waiting_time_counts, path=['specialization', 'waiting_time_category'], values='count',
+                  title='Specialization vs. Waiting Time Categories (Treemap)')
 
 # Display the plot
-fig.show()
-
-"""In this treemap we can see the top 10 traffic specialization with the category of waiting time"""
+st.plotly_chart(fig8)
