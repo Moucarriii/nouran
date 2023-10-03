@@ -61,8 +61,7 @@ st.subheader("Total Count of Doctors by Specialization")
 st.write(sorted_specializations)
 
 # Create a bar chart to visualize the total count of each specialization
-fig = plt.bar(sorted_specializations, x='specialization', y='Total Count',
-             title='Total Count of Doctors by Specialization')
+fig = plt.bar(sorted_specializations, x='specialization', y='Total Count', title='Total Count of Doctors by Specialization')
 
 # Customize the chart (optional)
 fig.update_xaxes(title_text='Specialization')
